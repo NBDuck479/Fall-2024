@@ -88,27 +88,52 @@ title('Change in Angular Velocity', 'FontSize', 14) % Add title
 xlim([1, length(Stateplot(:, 4))]) % Set x-axis limits
 
 
-% Now get the total state 
+%% Now get the total state 
 
-x_k = F * x0; 
+x_k_total_state = F * (x0 + [r0; 0; w0*1+sqrt(398600/(r0^3)); w0]); 
 
-for k = 1:length(t)
+for k = 1:length(t)-1
     
-    x_k_1{k+1} = F * x_k;
+    x_k_1_total{k+1} = F * (x_k_total_state + [r0; 0; w0*t(k+1)+sqrt(398600/(r0^3)); w0]);
     
-    x_k = x_k_1{k+1}; 
+    x_k_total_state = x_k_1_total{k+1}; 
 end
 
-x_k_1{1} = F * x0;
+x_k_1_total{1} = F * (x0 + [r0; 0; w0*1+sqrt(398600/(r0^3)); w0]);
 
+totalState = cell2mat(x_k_1_total)'; 
 
+figure(3)
+subplot(4,1,1)
+plot(totalState(:,1))
+grid on
+ylabel('$\Delta r$', 'Interpreter', 'latex', 'FontSize', 12)
+
+subplot(4,1,2)
+plot(totalState(:,2))
+grid on
+ylabel('$\Delta \dot{r}$', 'Interpreter', 'latex', 'FontSize', 12)
+
+subplot(4,1,3)
+plot(totalState(:,3))
+grid on
+ylabel('$\Delta \theta$', 'Interpreter', 'latex', 'FontSize', 12)
+
+subplot(4,1,4)
+plot(totalState(:,4))
+grid on
+ylabel('$\Delta \dot{\theta}$', 'Interpreter', 'latex', 'FontSize', 12)
+xlabel('time (sec)')
+
+sgtitle('Total State Over Orbit')
 
 % part b 
 % ODE45 
-tspan = [0 100]; 
-[t,Y] = ode45(@myOde, tspan, x0)
+tspan = [0 5400]; 
+options = odeset('RelTol', 1e-5)
+[t,Y] = ode45(@myOde, tspan, x0, options)
 
-figure(2)
+figure(4)
 subplot(4,1,1)
 plot(Y(:,1))
 grid on
