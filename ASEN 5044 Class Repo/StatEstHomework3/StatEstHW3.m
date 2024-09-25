@@ -14,8 +14,8 @@ Ahat = [[A], [B]; zeros(2,6)];
 
 Ahatexp = expm(Ahat*deltaT); 
 
-F = Ahatexp(1:4, 1:4);
-G = Ahatexp(1:4, 4:5); 
+F = Ahatexp(1:4, 1:4)
+G = Ahatexp(1:4, 4:5)
 
 H = C; 
 M = D; 
@@ -23,12 +23,30 @@ M = D;
 % smapling rate compare to the Nyquist rate? 
 [eVectors, eValues] = eig(A); 
 
-sampleRate = 2*pi / deltaT; 
+sampleRate = 2*pi / deltaT
 
-NyquitCriteria = pi / norm(eValues(1));
+NyquitCriteria = pi / norm(eValues(1))
 
 if deltaT < NyquitCriteria
     disp('Meets the Nyquist threshold!')
 else
     disp('DOES NOT MEET NYQUIST')
 end
+
+% part b
+
+observabilityMatrix = [H; H*F; H*F^2; H*F^3]; 
+
+if rank(observabilityMatrix) == 4
+    disp('Entire system observable!')
+else
+    disp('Not observable')
+end
+
+% part c
+load('hw3problem1data')
+
+[x0] = InputOutputObservability(Udata, Ydata, F, G, H, M); 
+
+%% Problem 2 
+
