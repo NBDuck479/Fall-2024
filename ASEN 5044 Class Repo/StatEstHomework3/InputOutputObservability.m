@@ -32,13 +32,13 @@ for k = 2:length(Ydata)
 end
 
 % started with Y{2} in the algorithm so set Y{1} manually 
-Y{1} = Ydata(:,1);
+% Y{1} = Ydata(:,1);
 
-% Same with Observability Matrix
-observabilityMatrix{1} = H;
 
 % cell to mat
 Y = cell2mat(Y');
+
 observabilityMatrix = cell2mat(observabilityMatrix');
 
-x0 = (observabilityMatrix'*observabilityMatrix)^(-1)*observabilityMatrix'*Y
+
+x0 = (observabilityMatrix'*observabilityMatrix)^(-1)*observabilityMatrix'*Y;
