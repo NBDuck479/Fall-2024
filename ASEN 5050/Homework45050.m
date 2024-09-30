@@ -199,3 +199,13 @@ g_dot = 1 - (r1_norm/p) * (1-cosd(deltaTA));
 r2 = f*r1 + g*v1
 
 v2 = f_dot*r1 + g_dot*v1
+
+
+
+% part e 
+
+SMA = a1;
+ECCEN = e1_norm;
+MU = Gm_Jupiter;
+tp = 1000; 
+E = KeplersEQsolver(tp, SMA, ECCEN, MU)
