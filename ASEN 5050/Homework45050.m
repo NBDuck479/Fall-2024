@@ -44,11 +44,11 @@ end
 % obtain f and g funcitons
 
 % change in true anomaly
-deltaTA = trueAnomoly2 - trueAnomoly1;
+deltaTA = trueAnomoly2 - trueAnomoly1
 
 p = h1_norm^2/Gm_saturn;
 
-f = 1 - (r1_norm/p) * (1-cosd(deltaTA));
+f = 1 - (R_saturn /p) * (1-cosd(deltaTA));
 
 g = r1_norm*R_saturn/sqrt(Gm_saturn*p) * sind(deltaTA);
 
@@ -188,7 +188,7 @@ deltaTA = trueAnomaly2 - trueAnomoly1;
 
 p = h1_norm^2/Gm_Jupiter;
 
-f = 1 - r1_norm/p * (1-cosd(deltaTA));
+f = 1 - r2_norm/p * (1-cosd(deltaTA));
 
 g = r1_norm*r2_norm/sqrt(Gm_Jupiter*p) * sind(deltaTA);
 
@@ -204,8 +204,10 @@ v2 = f_dot*r1 + g_dot*v1
 
 % part e 
 
-SMA = a1;
-ECCEN = e1_norm;
-MU = Gm_Jupiter;
-tp = 1000; 
-E = KeplersEQsolver(tp, SMA, ECCEN, MU)
+% part f 
+
+t3 = tp1 + 20*24*60*60;
+
+[E] = KeplersEQsolver(t3, a1, e1_norm, Gm_Jupiter)
+
+TA3 = 2*atan(sqrt((1+e1_norm)/(1-e1_norm))*tan(E/2))

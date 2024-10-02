@@ -10,18 +10,18 @@ meanMotion = sqrt(MU / (SMA^3));
 meanAnomaly = meanMotion*tp; 
 
 % set initial condition 
-E0 = deg2rad(meanAnomaly); 
+E0 = meanAnomaly; 
 
 % Keplers Eq'n set to zero
 
-g = @(E) E - ECCEN * sin(E) - meanMotion; 
+g = @(E) E - ECCEN * sin(E) - meanAnomaly; 
 
 g_prime = @(E) 1 - ECCEN * cos(E); 
 
 % Set max iteration limit
 count = 1;
 
-while g(E0) > 10^(-10) && count < 15
+while abs(g(E0)) > 10^(-10) && count < 15
 
     E_future = E0 - g(E0)/g_prime(E0);
     
