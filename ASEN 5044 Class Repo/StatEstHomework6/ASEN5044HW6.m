@@ -73,8 +73,7 @@ for k = 1:100
     % random sample draw
     q = rand(3,1);
     
-    y(1:3, k) = H*x0 + Sv*q;
-    
+    y(1:3, k) = H*x0 + Sv*q;    
 end
 
 fig = 1;
@@ -105,13 +104,122 @@ legend('yk(2)', 'yk(3)')
 title('yk(2) and yk(3)')
 
 
-% part b - compute sample covariance matrix 
-var(y(1, :))
-var(y(2, :))
-var(y(3, :))
+%% part b - compute sample covariance matrix 
+var(y(1,:));
+var(y(2,:));
+var(y(3,:));
+C = diag([var(y(1,:)), var(y(2,:)), var(y(3,:))]);
+
+cov(y(1,:), y(2,:));
+cov(y(2,:), y(3,:));
+cov(y(1,:), y(3,:));
+
+
+%% part - c
+
+xhatLS = inv(H'*inv(R)*H) * H'*inv(R) * y(1:3,1)
+
+% Do it with first 3 samples
+H3 = [H; H; H];
+
+R3 = blkdiag(R,R,R);
+
+xhatLS3 = inv(H3'*inv(R3)*H3) * H3'*inv(R3) * [y(1:3,1); y(1:3,2); y(1:3,3)]
+
+% Now with first 10 samples
+H10 = [H; H; H; H; H; H; H; H; H; H];
+R10 = blkdiag(R,R,R,R,R,R,R,R,R,R);
+
+xhatLS10 = inv(H10'*inv(R10)*H10) * H10'*inv(R10) * [y(1:3,1); y(1:3,2); y(1:3,3); y(1:3,4); y(1:3,5); y(1:3,6); y(1:3,7); y(1:3,8); y(1:3,9); y(1:3, 10)]
 
 
 
+%% Part - d
 
-% part - c
-xhat = inv(H'*inv(R)*H) * H'*inv(R)
+yK = importdata('hw6problem3data.csv'); 
+
+Rd = blkdiag(R10, R10, R10);
+
+Hd = [H10; H10; H10];
+
+xhatLS = inv(Hd'*inv(Rd)*Hd) * Hd'*inv(Rd) * yK(:)
+
+var(yK(1,:))
+var(yK(2,:))
+var(yK(3,:))
+
+cov(yK(1,:), yK(2,:))
+cov(yK(2,:), yK(3,:))
+cov(yK(1,:), yK(3,:))
+
+%% Part - e
+xhatUWLS = inv(Hd'*Hd) * Hd' * yK(:)
+
+
+%% part - f
+
+% inital estimate
+xhat_old = [0; 0; 0];
+
+% intial error covariance
+P_old = diag([100 100 100]);
+
+% measurement something matrix
+H = eye(3);
+
+% recursive LLS
+for i = 1:30
+    
+    Kk = P_old*H' * inv(H*P_old*H + R);
+    
+    xhat(:, i) = xhat_old + Kk*(yK(:,i) - H*xhat_old);
+    
+    P = (eye(3) - Kk*H) * P_old * (eye(3) - Kk*H)' + Kk*R*Kk';
+    
+    % save the diag of the P matrix for covariance stuff 
+    errCov(1:3,i) = [P(1); P(5); P(end)];
+    
+    P_old = P; 
+    
+end
+
+
+fig = 1;
+
+% Plot xhat(1,:) with twoSigma1
+figure(fig)
+twoSigma1 = 2 * sqrt(errCov(1,:));
+plot(1:30, xhat(1,:), 'LineWidth', 2); % Bold line for xhat(1,:)
+hold on
+plot(1:30, twoSigma1, 'r--', 'LineWidth', 1.5); % Dotted line for twoSigma1
+plot(1:30, -twoSigma1, 'r--', 'LineWidth', 1.5); % Dotted line for -twoSigma1
+hold off
+grid on
+fig = fig + 1;
+
+% Plot xhat(2,:) with twoSigma2
+figure(fig)
+twoSigma2 = 2 * sqrt(errCov(2,:));
+plot(1:30, xhat(2,:), 'LineWidth', 2); % Bold line for xhat(2,:)
+hold on
+plot(1:30, twoSigma2, 'r--', 'LineWidth', 1.5); % Dotted line for twoSigma2
+plot(1:30, -twoSigma2, 'r--', 'LineWidth', 1.5); % Dotted line for -twoSigma2
+hold off
+grid on
+fig = fig + 1;
+
+% Plot xhat(3,:) with twoSigma3
+figure(fig)
+twoSigma3 = 2 * sqrt(errCov(3,:));
+plot(1:30, xhat(3,:), 'LineWidth', 2); % Bold line for xhat(3,:)
+hold on
+plot(1:30, twoSigma3, 'r--', 'LineWidth', 1.5); % Dotted line for twoSigma3
+plot(1:30, -twoSigma3, 'r--', 'LineWidth', 1.5); % Dotted line for -twoSigma3
+hold off
+grid on
+fig = fig + 1;
+
+% Plot all xhat lines together
+figure(fig)
+plot(xhat', 'LineWidth', 2); % Bold lines for each xhat
+grid on
