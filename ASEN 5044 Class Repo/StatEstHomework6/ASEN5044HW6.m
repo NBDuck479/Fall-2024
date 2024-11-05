@@ -71,7 +71,7 @@ for k = 1:100
     Sv = chol(R, 'lower');
     
     % random sample draw
-    q = rand(3,1);
+    q = randn(3,1);
     
     y(1:3, k) = H*x0 + Sv*q;    
 end
@@ -134,6 +134,34 @@ xhatLS10 = inv(H10'*inv(R10)*H10) * H10'*inv(R10) * [y(1:3,1); y(1:3,2); y(1:3,3
 
 
 
+for N = 1:100
+    % Repeat H matrix N times
+    HN = repmat(H, N, 1);
+    
+    % Create a cell array with N copies of R
+    R_cells = repmat({R}, 1, N);
+    
+    % Use blkdiag to create a block diagonal matrix from R_cells
+    RN = blkdiag(R_cells{:});
+    
+    % Concatenate measurements y(:, i) for i = 1 to N into a single vector
+    yN = reshape(y(1:3, 1:N), [], 1);
+    
+    % Calculate xhatLSN using the generalized formula
+    xhatLSN = inv(HN' * inv(RN) * HN) * HN' * inv(RN) * yN;
+    
+    % estimation error covariance
+    P = inv(H'*inv(R)*H);
+    
+    cov(y(1,1:N), y(2,1:N));
+    cov(y(2,1:N), y(3,1:N));
+    cov(y(1,1:N), y(3,1:N));
+
+    var(y(1,:));
+    var(y(2,:));
+    var(y(3,:));
+    
+end
 %% Part - d
 
 yK = importdata('hw6problem3data.csv'); 
@@ -143,6 +171,41 @@ Rd = blkdiag(R10, R10, R10);
 Hd = [H10; H10; H10];
 
 xhatLS = inv(Hd'*inv(Rd)*Hd) * Hd'*inv(Rd) * yK(:)
+
+
+
+for N = 1:30
+    % Repeat H matrix N times
+    HN = repmat(H, N, 1);
+    
+    % Create a cell array with N copies of R
+    R_cells = repmat({R}, 1, N);
+    
+    % Use blkdiag to create a block diagonal matrix from R_cells
+    RN = blkdiag(R_cells{:});
+    
+    % Concatenate measurements y(:, i) for i = 1 to N into a single vector
+    yN = reshape(yK(1:3, 1:N), [], 1);
+    
+    % Calculate xhatLSN using the generalized formula
+    xhatLSN(1:3,N) = inv(HN' * inv(RN) * HN) * HN' * inv(RN) * yN;
+    
+    % estimation error covariance
+    P = inv(H'*inv(R)*H);
+    
+    cov(xhatLSN(1,1:N), xhatLSN(2,1:N));
+    cov(xhatLSN(2,1:N), xhatLSN(3,1:N));
+    cov(xhatLSN(1,1:N), xhatLSN(3,1:N));
+
+    var(y(1,:));
+    var(y(2,:));
+    var(y(3,:));
+    
+end
+
+
+
+
 
 var(yK(1,:))
 var(yK(2,:))
@@ -170,9 +233,9 @@ H = eye(3);
 % recursive LLS
 for i = 1:30
     
-    Kk = P_old*H' * inv(H*P_old*H + R);
+    Kk = P_old*H' * inv(H*P_old*H' + R);
     
-    xhat(:, i) = xhat_old + Kk*(yK(:,i) - H*xhat_old);
+    xhat(:, i) = xhat_old(:, i) + Kk*(yK(:,i) - H*xhat_old(:, i));
     
     P = (eye(3) - Kk*H) * P_old * (eye(3) - Kk*H)' + Kk*R*Kk';
     
@@ -181,6 +244,8 @@ for i = 1:30
     
     P_old = P; 
     
+    xhat_old(:, i+1) = xhat(:, i);
+    
 end
 
 
@@ -188,38 +253,46 @@ fig = 1;
 
 % Plot xhat(1,:) with twoSigma1
 figure(fig)
-twoSigma1 = 2 * sqrt(errCov(1,:));
+twoSigma1up = mean(xhat(1,:)) +  2 * sqrt(errCov(1,:));
+twoSigma1lo = mean(xhat(1,:)) -  2 * sqrt(errCov(1,:));
 plot(1:30, xhat(1,:), 'LineWidth', 2); % Bold line for xhat(1,:)
 hold on
-plot(1:30, twoSigma1, 'r--', 'LineWidth', 1.5); % Dotted line for twoSigma1
-plot(1:30, -twoSigma1, 'r--', 'LineWidth', 1.5); % Dotted line for -twoSigma1
+plot(1:30, twoSigma1up, 'r--', 'LineWidth', 1.5); % Dotted line for twoSigma1
+plot(1:30, twoSigma1lo, 'r--', 'LineWidth', 1.5); % Dotted line for -twoSigma1
 hold off
 grid on
+xlabel('Time Step K [s]')
+ylabel('Position [m]')
+title('Xhat component 1')
 fig = fig + 1;
 
 % Plot xhat(2,:) with twoSigma2
 figure(fig)
-twoSigma2 = 2 * sqrt(errCov(2,:));
+twoSigma2up = mean(xhat(2,:)) + 2 * sqrt(errCov(2,:));
+twoSigma2lo = mean(xhat(2,:)) - 2 * sqrt(errCov(2,:));
 plot(1:30, xhat(2,:), 'LineWidth', 2); % Bold line for xhat(2,:)
 hold on
-plot(1:30, twoSigma2, 'r--', 'LineWidth', 1.5); % Dotted line for twoSigma2
-plot(1:30, -twoSigma2, 'r--', 'LineWidth', 1.5); % Dotted line for -twoSigma2
+plot(1:30, twoSigma2up, 'r--', 'LineWidth', 1.5); % Dotted line for twoSigma2
+plot(1:30, twoSigma2lo, 'r--', 'LineWidth', 1.5); % Dotted line for -twoSigma2
 hold off
 grid on
+ylabel('Position [m]')
+xlabel('Time Step K [s]')
+title('Xhat component 2')
 fig = fig + 1;
 
 % Plot xhat(3,:) with twoSigma3
 figure(fig)
-twoSigma3 = 2 * sqrt(errCov(3,:));
+twoSigma3up = mean(xhat(3,:)) + 2 * sqrt(errCov(3,:));
+twoSigma3lo = mean(xhat(3,:)) - 2 * sqrt(errCov(3,:));
 plot(1:30, xhat(3,:), 'LineWidth', 2); % Bold line for xhat(3,:)
 hold on
-plot(1:30, twoSigma3, 'r--', 'LineWidth', 1.5); % Dotted line for twoSigma3
-plot(1:30, -twoSigma3, 'r--', 'LineWidth', 1.5); % Dotted line for -twoSigma3
+plot(1:30, twoSigma3up, 'r--', 'LineWidth', 1.5); % Dotted line for twoSigma3
+plot(1:30, twoSigma3lo, 'r--', 'LineWidth', 1.5); % Dotted line for -twoSigma3
 hold off
 grid on
+xlabel('Time Step K [s]')
+ylabel('Position [m]')
+title('Xhat component 3')
 fig = fig + 1;
 
-% Plot all xhat lines together
-figure(fig)
-plot(xhat', 'LineWidth', 2); % Bold lines for each xhat
-grid on
